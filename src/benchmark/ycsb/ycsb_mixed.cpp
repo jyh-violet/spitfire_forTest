@@ -72,14 +72,16 @@ bool RunMixed(ConcurrentBufferManager *buf_mgr, const size_t thread_id, ZipfDist
 
             bool point_lookup = true;
             bool acquire_owner = false;
-            char str[100];
+            char str[COLUMN_COUNT][100];
             auto field_idx = rng.next() % COLUMN_COUNT;
             IndexScanExecutor<uint64_t, YCSBTuple> lookup_executor(*user_table, lookup_key, point_lookup,
                                                                    [lookup_key, &str, field_idx](const YCSBTuple &t, bool & should_end_scan) {
                                                                        if (t.key == lookup_key) {
                                                                            should_end_scan = true;
-                                                                           memcpy(str, t.cols[field_idx],
-                                                                                  sizeof(t.cols[field_idx]));
+                                                                           for (int j = 0; j < COLUMN_COUNT; ++j) {
+                                                                               memcpy(str[j], t.cols[j],
+                                                                                      sizeof(t.cols[j]));
+                                                                           }
                                                                            return true;
                                                                        }
                                                                        return false;

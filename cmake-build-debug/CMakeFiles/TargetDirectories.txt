@@ -1,0 +1,6 @@
+/mnt/e/data/code/spitfire_forTest/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/mnt/e/data/code/spitfire_forTest/cmake-build-debug/CMakeFiles/edit_cache.dir
+/mnt/e/data/code/spitfire_forTest/cmake-build-debug/CMakeFiles/tpcc.dir
+/mnt/e/data/code/spitfire_forTest/cmake-build-debug/CMakeFiles/ycsb.dir
+/mnt/e/data/code/spitfire_forTest/cmake-build-debug/CMakeFiles/txn_unit_test.dir
+/mnt/e/data/code/spitfire_forTest/cmake-build-debug/CMakeFiles/btree_unit_test.dir

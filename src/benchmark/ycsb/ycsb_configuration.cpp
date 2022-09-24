@@ -300,7 +300,7 @@ void ParseArguments(int argc, char *argv[], configuration &state) {
 
 
 void WriteOutput() {
-  std::ofstream out("outputfile.summary");
+    std::ofstream out("outputfile.summary", std::ios_base::app);
 
   int total_profile_memory = 0;
   for (auto &entry : state.profile_memory) {
@@ -319,25 +319,27 @@ void WriteOutput() {
            state.abort_rate,
            total_profile_memory);
 
-  out << state.scale_factor << " ";
-  out << state.backend_count << " ";
-  out << state.operation_count << " ";
-  out << state.update_ratio << " ";
-  out << state.zipf_theta << " ";
-  out << state.warmup_throughput << " ";
-  out << state.throughput << " ";
-  out << state.abort_rate << " ";
+  out << state.scale_factor << ", ";
+  out << state.backend_count << ", ";
+  out << state.operation_count << ", ";
+  out << state.update_ratio << ", ";
+  out << state.zipf_theta << ", ";
+  out << state.bp_config.nvm_buf_pool_cap_in_bytes/1024/1024 << ", ";
+  out << state.bp_config.dram_buf_pool_cap_in_bytes/1024/1024 << ", ";
+  out << std::fixed << state.warmup_throughput << ", ";
+  out << std::fixed << state.throughput << ", ";
+  out << state.abort_rate << ", ";
   out << total_profile_memory << "\n";
 
-  for (size_t round_id = 0; round_id < state.profile_throughput.size();
-       ++round_id) {
-    out << "[" << std::setw(3) << std::left
-        << state.profile_duration * round_id << " - " << std::setw(3)
-        << std::left << state.profile_duration * (round_id + 1)
-        << " s]: " << state.profile_throughput[round_id] << " "
-        << state.profile_abort_rate[round_id] << " "
-        << state.profile_memory[round_id] << "\n";
-  }
+//  for (size_t round_id = 0; round_id < state.profile_throughput.size();
+//       ++round_id) {
+//    out << "[" << std::setw(3) << std::left
+//        << state.profile_duration * round_id << " - " << std::setw(3)
+//        << std::left << state.profile_duration * (round_id + 1)
+//        << " s]: " << state.profile_throughput[round_id] << " "
+//        << state.profile_abort_rate[round_id] << " "
+//        << state.profile_memory[round_id] << "\n";
+//  }
   out.flush();
   out.close();
 }
