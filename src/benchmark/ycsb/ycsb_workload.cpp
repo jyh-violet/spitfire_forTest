@@ -135,9 +135,11 @@ void RunBackend(ConcurrentBufferManager *buf_mgr, const size_t thread_id, const 
             }
         }
         backoff_shifts >>= 1;
-        transaction_count_ref.data += num_rw_ops - num_rw_ops_snap;
+        transaction_count_ref.data ++;
+//        transaction_count_ref.data += num_rw_ops - num_rw_ops_snap;
     }
-    //LOG_INFO("%d Inner Done", thread_id);
+    LOG_INFO("%d Inner Done cnt:%d, transaction_count_ref.data:%d, execution_count_ref.data:%d",
+             thread_id, cnt, transaction_count_ref.data, execution_count_ref.data);
 }
 
 
