@@ -14,7 +14,7 @@ for u in ${updates[*]} ; do
     echo -e "\n\n" >> outputfile.summary
     for (( i = 0; i < $repeat; i++ )); do
         rm -rf /home/jyh/spitfire/data/spitfire_db/
-        cp  /home/jyh/spitfire/data/spitfire_db_100/ /home/jyh/spitfire/data/spitfire_db/
+        cp  -r /home/jyh/spitfire/data/spitfire_db_100/ /home/jyh/spitfire/data/spitfire_db/
         numactl --physcpubind=0-15,32-47 --membind=0 ./ycsb -k 50000 -T ${dram_size[mi]} -Y ${nvm_size[mi]} -I -U 30 -s -B 1 -D /home/jyh/spitfire/data/spitfire_db/ -P /optane/jyh/hmm/spitfire_buf/ -u ${u} -d 30  -b ${t} -z ${z} -o 1 -L
     done
   done
