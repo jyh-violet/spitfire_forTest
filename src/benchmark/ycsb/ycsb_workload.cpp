@@ -110,6 +110,7 @@ void RunBackend(ConcurrentBufferManager *buf_mgr, const size_t thread_id, const 
     // backoff
     uint32_t backoff_shifts = 0;
     int cnt = 0;
+    transaction_count_ref.data = 0;
     while (true) {
         if (is_running == false) {
             break;
@@ -135,8 +136,8 @@ void RunBackend(ConcurrentBufferManager *buf_mgr, const size_t thread_id, const 
             }
         }
         backoff_shifts >>= 1;
-//        transaction_count_ref.data ++;
-        transaction_count_ref.data += num_rw_ops - num_rw_ops_snap;
+        transaction_count_ref.data ++;
+//        transaction_count_ref.data += num_rw_ops - num_rw_ops_snap;
     }
     LOG_INFO("%d Inner Done cnt:%d, transaction_count_ref.data:%d, execution_count_ref.data:%d, num_rw_ops:%d",
              thread_id, cnt, transaction_count_ref.data, execution_count_ref.data, num_rw_ops);
