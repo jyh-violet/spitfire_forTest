@@ -1332,6 +1332,7 @@ Slice ConcurrentBufferManager::PageAccessor::PrepareForAccess(uint32_t off, size
         evicted_pids.clear();
     };
     ++num_rw_ops;
+//    LOG_INFO("PrepareForAccess: num_rw_ops:%zu\n", num_rw_ops);
     int restart_times = 0;
     restart:
     {

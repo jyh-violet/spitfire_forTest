@@ -77,7 +77,10 @@ bool RunMixed(ConcurrentBufferManager *buf_mgr, const size_t thread_id, ZipfDist
             IndexScanExecutor<uint64_t, YCSBTuple> lookup_executor(*user_table, lookup_key, point_lookup,
                                                                    [lookup_key, &str, field_idx](const YCSBTuple &t, bool & should_end_scan) {
                                                                        if (t.key == lookup_key) {
+//                                                                           LOG_INFO("lookup: lookup_key:%lu\n", lookup_key);
                                                                            should_end_scan = true;
+//                                                                           memcpy(str[field_idx], t.cols[field_idx],
+//                                                                                  sizeof(t.cols[field_idx]));
                                                                            for (int j = 0; j < COLUMN_COUNT; ++j) {
                                                                                memcpy(str[j], t.cols[j],
                                                                                       sizeof(t.cols[j]));
