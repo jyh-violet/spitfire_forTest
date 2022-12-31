@@ -308,7 +308,7 @@ void WriteOutput() {
   }
 
   LOG_INFO("----------------------------------------------------------");
-  LOG_INFO("%d %d %d %lf %lf :: %lf %lf %lf %d",
+  LOG_INFO("%d %d %d %lf %lf :: %lf %lf %lf %d, %lf, %lf, %lf",
            state.scale_factor,
            state.backend_count,
            state.operation_count,
@@ -317,7 +317,10 @@ void WriteOutput() {
            state.warmup_throughput,
            state.throughput,
            state.abort_rate,
-           total_profile_memory);
+           total_profile_memory,
+           state.percentile_val50,
+           state.percentile_val75,
+           state.percentile_val99);
 
   out << state.scale_factor << ", ";
   out << state.backend_count << ", ";

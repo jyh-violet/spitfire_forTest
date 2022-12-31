@@ -33,12 +33,12 @@ namespace spitfire {
 namespace benchmark {
 namespace ycsb {
 
-bool RunMixed(ConcurrentBufferManager *buf_mgr, const size_t thread_id, ZipfDistribution &zipf, FastRandom &rng, const std::vector<uint64_t>& keys) {
+int RunMixed(ConcurrentBufferManager *buf_mgr, const size_t thread_id, ZipfDistribution &zipf, FastRandom &rng, const std::vector<uint64_t>& keys) {
     auto txn_manager = MVTOTransactionManager::GetInstance(buf_mgr);
 
     TransactionContext *txn =
             txn_manager->BeginTransaction(thread_id);
-
+    bool write = true;
     for (int i = 0; i < state.operation_count; i++) {
         auto rng_val = rng.NextUniform();
 
@@ -69,7 +69,7 @@ bool RunMixed(ConcurrentBufferManager *buf_mgr, const size_t thread_id, ZipfDist
             // PERFORM READ
             /////////////////////////////////////////////////////////
 
-
+            write = false;
             bool point_lookup = true;
             bool acquire_owner = false;
             char str[COLUMN_COUNT][100];
@@ -105,8 +105,11 @@ bool RunMixed(ConcurrentBufferManager *buf_mgr, const size_t thread_id, ZipfDist
     auto result = txn_manager->CommitTransaction(txn);
 
     if (result == ResultType::SUCCESS) {
-        return true;
-
+        if(write){
+            return 1;
+        } else{
+            return 2;
+        }
     } else {
         // transaction failed commitment.
         assert(result == ResultType::ABORTED ||

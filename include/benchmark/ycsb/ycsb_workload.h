@@ -28,7 +28,7 @@ void RunWorkload(ConcurrentBufferManager * buf_mgr, const std::vector<uint64_t>&
 
 void RunWarmupWorkload(ConcurrentBufferManager * buf_mgr, const std::vector<uint64_t>&);
 
-bool RunMixed(ConcurrentBufferManager * buf_mgr, const size_t thread_id, ZipfDistribution &zipf, FastRandom &rng, const std::vector<uint64_t>&);
+int RunMixed(ConcurrentBufferManager * buf_mgr, const size_t thread_id, ZipfDistribution &zipf, FastRandom &rng, const std::vector<uint64_t>&);
 
 /////////////////////////////////////////////////////////
 

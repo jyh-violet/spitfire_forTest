@@ -161,7 +161,7 @@ void RunWarmupBackend(ConcurrentBufferManager *buf_mgr, const size_t thread_id, 
             break;
         }
         ++cnt;
-        while (RunMixed(buf_mgr, thread_id, zipf, rng, keys) == false) {
+        while ((RunMixed(buf_mgr, thread_id, zipf, rng, keys)) == 0) {
             if (is_running == false) {
                 break;
             }
@@ -207,7 +207,8 @@ void RunBackend(ConcurrentBufferManager *buf_mgr, const size_t thread_id, const 
         struct timespec time1, time2;
         clock_gettime(CLOCK_REALTIME, &time1);
 #endif
-        while (RunMixed(buf_mgr, thread_id, zipf, rng, keys) == false) {
+        int ret = 0;
+        while ((ret = RunMixed(buf_mgr, thread_id, zipf, rng, keys) )== false) {
             if (is_running == false) {
                 break;
             }
@@ -226,7 +227,9 @@ void RunBackend(ConcurrentBufferManager *buf_mgr, const size_t thread_id, const 
 #ifdef TEST_LATENCY
         clock_gettime(CLOCK_REALTIME, &time2);
         uint64_t latency = time2.tv_sec * 1e9 + time2.tv_nsec - time1.tv_sec * 1e9 - time1.tv_nsec;
-        percentile_update((double )latency);
+        if(ret == 2){
+            percentile_update((double )latency);
+        }
 #endif
         backoff_shifts >>= 1;
         transaction_count_ref.data ++;
