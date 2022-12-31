@@ -140,9 +140,9 @@ Status PosixEnv::PRead(int fd, off_t off, void * buf, size_t size) {
 
 Status PosixEnv::OpenRWFile(const std::string & filepath, int & fd, bool direct_io) {
     auto flags = O_RDWR;
-    if (direct_io == true) {
-        flags |= O_DIRECT;
-    }
+//    if (direct_io == true) {
+//        flags |= O_DIRECT;
+//    }
     int fd1 = open(filepath.c_str(), flags);
     if (fd1 < 0)
         return PosixError(filepath, errno);
@@ -153,9 +153,9 @@ Status PosixEnv::OpenRWFile(const std::string & filepath, int & fd, bool direct_
 
 Status PosixEnv::CreateRWFile(const std::string & filepath, int & fd, bool direct_io) {
     auto flags = O_TRUNC | O_RDWR | O_CREAT;
-    if (direct_io) {
-        flags |= O_DIRECT;
-    }
+//    if (direct_io) {
+//        flags |= O_DIRECT;
+//    }
 
     int fd1 = open(filepath.c_str(), flags, 0644);
     if (fd1 < 0)

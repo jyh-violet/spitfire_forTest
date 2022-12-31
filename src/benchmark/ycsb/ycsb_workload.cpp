@@ -57,7 +57,92 @@ void PinToCore(size_t core) {
     // Reference: https://superuser.com/questions/149312/how-to-set-processor-affinity-on-os-x
 #endif
 }
+#define TEST_LATENCY
 
+typedef struct {
+        unsigned long long  *values;
+        unsigned long long  *tmp;
+        unsigned long long  total;
+        unsigned int        size;
+        double              range_min;
+        double              range_max;
+        double              range_deduct;
+        double              range_mult;
+        pthread_mutex_t     mutex;
+    } sb_percentile_t;
+    sb_percentile_t percentile;
+    void percentile_update(double value)
+    {
+        unsigned int n;
+
+        if (value < percentile.range_min)
+            value= percentile.range_min;
+        else if (value > percentile.range_max)
+            value= percentile.range_max;
+
+        n = floor((log(value) - percentile.range_deduct) * percentile.range_mult
+                + 0.5);
+
+        pthread_mutex_lock(&percentile.mutex);
+        percentile.total++;
+        percentile.values[n]++;
+        pthread_mutex_unlock(&percentile.mutex);
+    }
+
+    static int percentile_init(uint64_t size, double range_min, double range_max){
+        percentile.values = (unsigned long long *)
+                calloc(size, sizeof(unsigned long long));
+        percentile.tmp = (unsigned long long *)
+                calloc(size, sizeof(unsigned long long));
+        if (percentile.values == NULL || percentile.tmp == NULL)
+        {
+            //log_text(LOG_FATAL, "Cannot allocate values array, size = %u", size);
+            return 1;
+        }
+
+        percentile.range_deduct = log(range_min);
+        percentile.range_mult = (size - 1) / (log(range_max) -
+                percentile.range_deduct);
+        percentile.range_min = range_min;
+        percentile.range_max = range_max;
+        percentile.size = size;
+        percentile.total = 0;
+
+        pthread_mutex_init(&percentile.mutex, NULL);
+
+        return 0;
+    }
+
+
+    static double percentile_calculate(double percent)
+    {
+        unsigned long long ncur, nmax;
+        unsigned int       i;
+
+        pthread_mutex_lock(&percentile.mutex);
+
+        if (percentile.total == 0)
+        {
+            pthread_mutex_unlock(&percentile.mutex);
+            return 0.0;
+        }
+
+        memcpy(percentile.tmp, percentile.values,
+               percentile.size * sizeof(unsigned long long));
+        nmax = floor(percentile.total * percent / 100 + 0.5);
+
+        pthread_mutex_unlock(&percentile.mutex);
+
+        ncur = percentile.tmp[0];
+        for (i = 1; i < percentile.size; i++)
+        {
+            ncur += percentile.tmp[i];
+            if (ncur >= nmax)
+                break;
+        }
+
+        return exp((i) / percentile.range_mult + percentile.range_deduct);
+    }
 
 void RunWarmupBackend(ConcurrentBufferManager *buf_mgr, const size_t thread_id, const std::vector<uint64_t> &keys) {
 
@@ -94,7 +179,6 @@ void RunWarmupBackend(ConcurrentBufferManager *buf_mgr, const size_t thread_id, 
     }
 }
 
-
 void RunBackend(ConcurrentBufferManager *buf_mgr, const size_t thread_id, const std::vector<uint64_t> &keys) {
 
     //PinToCore(thread_id);
@@ -119,6 +203,10 @@ void RunBackend(ConcurrentBufferManager *buf_mgr, const size_t thread_id, const 
 //        LOG_INFO("%d working %d", thread_id, cnt);
         ++cnt;
         size_t num_rw_ops_snap = num_rw_ops;
+#ifdef TEST_LATENCY
+        struct timespec time1, time2;
+        clock_gettime(CLOCK_REALTIME, &time1);
+#endif
         while (RunMixed(buf_mgr, thread_id, zipf, rng, keys) == false) {
             if (is_running == false) {
                 break;
@@ -135,10 +223,16 @@ void RunBackend(ConcurrentBufferManager *buf_mgr, const size_t thread_id, const 
                 std::this_thread::sleep_for(std::chrono::microseconds(sleep_duration));
             }
         }
+#ifdef TEST_LATENCY
+        clock_gettime(CLOCK_REALTIME, &time2);
+        uint64_t latency = time2.tv_sec * 1e9 + time2.tv_nsec - time1.tv_sec * 1e9 - time1.tv_nsec;
+        percentile_update((double )latency);
+#endif
         backoff_shifts >>= 1;
         transaction_count_ref.data ++;
 //        transaction_count_ref.data += num_rw_ops - num_rw_ops_snap;
     }
+
     LOG_INFO("%d Inner Done cnt:%d, transaction_count_ref.data:%d, execution_count_ref.data:%d, num_rw_ops:%d",
              thread_id, cnt, transaction_count_ref.data, execution_count_ref.data, num_rw_ops);
 }
@@ -290,6 +384,7 @@ void RunWorkload(ConcurrentBufferManager *buf_mgr, const std::vector<uint64_t> &
 
     CountDownLatch latch(num_threads + state.enable_annealing);
     srand(time(0));
+    percentile_init(1e6, 1.0, 1e9);
     // Launch a group of threads
     for (size_t thread_itr = 0; thread_itr < num_threads; ++thread_itr) {
         the_tp.enqueue([&latch, thread_itr, buf_mgr, &keys]() {
@@ -366,6 +461,11 @@ void RunWorkload(ConcurrentBufferManager *buf_mgr, const std::vector<uint64_t> &
     }
 
     //////////////////////////////////////////////////
+
+    state.percentile_val50 = percentile_calculate(50);
+    state.percentile_val75 = percentile_calculate(75);
+    state.percentile_val99 = percentile_calculate(99);
+
     // calculate the aggregated throughput and abort rate.
     uint64_t warmup_period_commit_count = 0;
     for (size_t i = 0; i < num_threads; ++i) {

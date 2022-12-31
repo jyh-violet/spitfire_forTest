@@ -328,6 +328,9 @@ void WriteOutput() {
   out << state.bp_config.dram_buf_pool_cap_in_bytes/1024/1024 << ", ";
   out << std::fixed << state.warmup_throughput << ", ";
   out << std::fixed << state.throughput << ", ";
+  out << std::fixed << state.percentile_val50 << ", ";
+  out << std::fixed << state.percentile_val75 << ", ";
+  out << std::fixed << state.percentile_val99 << ", ";
   out << state.abort_rate << ", ";
   out << total_profile_memory << "\n";
 

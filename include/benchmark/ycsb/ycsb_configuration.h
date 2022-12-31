@@ -127,6 +127,9 @@ public:
     bool enable_hymem = false;
 
     double admission_set_size = 0.1;
+    double percentile_val50 ;
+    double percentile_val75 ;
+    double percentile_val99;
 };
 
 extern configuration state;
